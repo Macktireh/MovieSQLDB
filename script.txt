@@ -1,0 +1,84 @@
+/*
+select (row_number()  over()) + 1011503 as id,actor_id_metro,actor_name_metro from (
+select max(actor_id_metro) as actor_id_metro,upper(trim(actor_name_metro)) as actor_name_metro from metrostarlet.actor_metro where upper(trim(actor_name_metro)) in (
+select distinct upper(trim(actor_name_metro)) from metrostarlet.actor_metro 
+where upper(trim(actor_name_metro)) not in (select distinct upper(trim(actor_name)) from dbcentrale.actor)
+) group by actor_name_metro
+order by actor_id_metro
+) t
+
+select  max(actor_id) as actor_id,actor_name,sexe from (
+select actor_id,actor_name,sexe from (
+select upper(trim(actor_name)) as actor_name,max(cast(actor_id as numeric)) as actor_id,sexe from buckboaster.actor where upper(trim(actor_name)) not in (
+select distinct upper(trim(actor_name)) from buckboaster.actor where upper(trim(actor_name)) in ( select distinct upper(trim(actor_name_metro)) from metrostarlet.actor_metro)
+) group by upper(trim(actor_name)),sexe
+
+union all
+
+select upper(trim(actor_name)) as actor_name,max(cast(actor_id as numeric)) as actor_id,sexe  from buckboaster.actor where upper(trim(actor_name)) in ( select distinct upper(trim(actor_name_metro)) from metrostarlet.actor_metro)
+group by upper(trim(actor_name)),sexe
+) t 
+
+--select 1000 - 642 from dual --358
+
+union all
+ 
+select  max(actor_id_metro) as actor_id_metro,upper(trim(actor_name_metro)) as actor_name_metro, null as sexe
+from metrostarlet.actor_metro where upper(trim(actor_name_metro)) in ( select upper(trim(actor_name)) from buckboaster.actor)
+group by upper(trim(actor_name_metro))
+
+) t group by actor_name,sexe
+order by actor_id
+
+
+select row_number()  over() as movie_id,movie_title,movie_year,writer,director,release_date,release_price,id,id_magasin from (
+select movie_id,upper(trim(movie_title)) as movie_title,production_year as movie_year,writer, director,release_date,release_price,cast(movie_id as text) as id,2 as id_magasin
+from metrostarlet.movie_metro where upper(trim(movie_title)) in ( select distinct upper(trim(movie_title)) 
+from buckboaster.movie)
+
+union all
+
+select movie_id,upper(trim(movie_title)) as movie_title,production_year as movie_year, writer, director, release_date,release_price,cast(movie_id as text) as id,2 as id_magasin
+from metrostarlet.movie_metro where upper(trim(movie_title)) not in ( select distinct upper(trim(movie_title)) 
+from buckboaster.movie)
+
+union all
+
+select max(movie_id) as movie_id,movie_title,movie_year,null as writer,null as director,null as release_date,null as release_price,id,1 as id_magasin from (
+select cast(substr(movie_id,3,20) as numeric) as movie_id,upper(trim(movie_title)) as movie_title,cast(movie_year as numeric) as movie_year,movie_id as id from buckboaster.movie where upper(trim(movie_title)) not in (
+select distinct upper(trim(movie_title)) from buckboaster.movie where upper(trim(movie_title)) in ( select distinct upper(trim(movie_title)) from metrostarlet.movie_metro)
+) ) m group by movie_title,movie_year,id
+
+
+union all
+
+select max(movie_id) as movie_id,movie_title,movie_year,null as writer,null as director,null as release_date,null as release_price,id,1 as id_magasin from (
+select cast(substr(movie_id,3,20) as numeric) as movie_id,upper(trim(movie_title)) as movie_title,cast(movie_year as numeric) as movie_year,movie_id as id from buckboaster.movie where upper(trim(movie_title)) in (
+select distinct upper(trim(movie_title)) from buckboaster.movie where upper(trim(movie_title)) in ( select distinct upper(trim(movie_title)) from metrostarlet.movie_metro)
+) ) m group by movie_title,movie_year,id
+order by movie_id
+) m --group by movie_title,movie_year,writer,director,release_date,release_price having count(*)>1
+*/
+
+--*************************************************
+
+select row_number()  over() as cust_id,id,cust_name, birthdate,sex_male,addresse,id_magasin from (
+select distinct cast(null as text) as id, upper(cust_name) as cust_name, birthdate,sex_male,addresse,3 as id_magasin from (
+SELECT ref_no,cust_name, birthdate, (case when sex_male = 't' then 'M' else 'F' end) as sex_male,addresse FROM moviemegamart.gadgetsales_mega
+union all
+SELECT ref_no, cust_name, birthdate, (case when sex_male = 't' then 'M' else 'F' end) as sex_male,addresse FROM moviemegamart.movierentals_mega
+union all
+SELECT ref_no,cust_name, birthdate, (case when sex_male = 't' then 'M' else 'F' end) as sex_male, addresse FROM moviemegamart.moviesales_mega
+) c 
+
+union all
+
+select cast(cust_id_metro as text) as id, upper(name_metro||' '||middlename_metro||' '||surname_metro) as cust_name, birthday_metro,gender_metro, address_metro,2 as id_magasin from metrostarlet.customer_metro
+union all
+select cust_id as id,upper(lastname||' '||firstname) as cust_name,dat, sexe,null as address_metro,1 as id_magasin from buckboaster.customer
+
+) cu order by id
+
+
+
+
